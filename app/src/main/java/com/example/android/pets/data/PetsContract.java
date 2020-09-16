@@ -12,7 +12,7 @@ public final class PetsContract {
      * Inner class that defines constant values for the pets database table.
      * Each entry in the table represents a single pet.
      */
-    public static abstract class PetsEntry implements BaseColumns{
+    public static final class PetsEntry implements BaseColumns{
 
         /** Name of database table for pets */
         public static final String TABLE_NAME = "pets";
@@ -22,7 +22,7 @@ public final class PetsContract {
          *
          * Type: INTEGER
          */
-        public static final String COLUMN_ID = BaseColumns._ID;
+        public static final String _ID = BaseColumns._ID;
 
         /**
          * Name of the pet.
