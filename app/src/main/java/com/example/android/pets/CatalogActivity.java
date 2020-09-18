@@ -18,7 +18,7 @@ package com.example.android.pets;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -27,15 +27,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import com.example.android.pets.data.PetDbHelper;
-import com.example.android.pets.data.PetsContract;
+import com.example.android.pets.data.PetContract;
 
 /**
  * Displays list of pets that were entered and stored in the app.
  */
 public class CatalogActivity extends AppCompatActivity {
-
-    private PetDbHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,9 +48,6 @@ public class CatalogActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
-        dbHelper = new PetDbHelper(this);
-        displayDatabaseInfo();
     }
 
     @Override
@@ -68,19 +62,15 @@ public class CatalogActivity extends AppCompatActivity {
      */
     public void displayDatabaseInfo() {
 
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-
         String[] projection = {
-                PetsContract.PetsEntry._ID,
-                PetsContract.PetsEntry.COLUMN_PET_NAME,
-                PetsContract.PetsEntry.COLUMN_PET_BREED,
-                PetsContract.PetsEntry.COLUMN_PET_WEIGHT,
-                PetsContract.PetsEntry.COLUMN_PET_GENDER
+                PetContract.PetEntry._ID,
+                PetContract.PetEntry.COLUMN_PET_NAME,
+                PetContract.PetEntry.COLUMN_PET_BREED,
+                PetContract.PetEntry.COLUMN_PET_WEIGHT,
+                PetContract.PetEntry.COLUMN_PET_GENDER
         };
 
-        Cursor cursor = db.query(
-                PetsContract.PetsEntry.TABLE_NAME,
-                projection, null, null, null, null, null);
+        Cursor cursor = getContentResolver().query(PetContract.PetEntry.CONTENT_URI, projection, null, null,null);
 
         TextView displayView = (TextView) findViewById(R.id.text_view_pet);
         try {
@@ -93,18 +83,18 @@ public class CatalogActivity extends AppCompatActivity {
             // the information from each column in this order.
 
             displayView.setText("The pets table contains " + cursor.getCount() + " pets.\n\n");
-            displayView.append(PetsContract.PetsEntry._ID + " - " +
-                    PetsContract.PetsEntry.COLUMN_PET_NAME + " - " +
-                    PetsContract.PetsEntry.COLUMN_PET_BREED + " - " +
-                    PetsContract.PetsEntry.COLUMN_PET_GENDER + " - " +
-                    PetsContract.PetsEntry.COLUMN_PET_WEIGHT + "\n");
+            displayView.append(PetContract.PetEntry._ID + " - " +
+                    PetContract.PetEntry.COLUMN_PET_NAME + " - " +
+                    PetContract.PetEntry.COLUMN_PET_BREED + " - " +
+                    PetContract.PetEntry.COLUMN_PET_GENDER + " - " +
+                    PetContract.PetEntry.COLUMN_PET_WEIGHT + "\n");
 
             // Figure out the index of each column
-            int idColumnIndex = cursor.getColumnIndex(PetsContract.PetsEntry._ID);
-            int nameColumnIndex = cursor.getColumnIndex(PetsContract.PetsEntry.COLUMN_PET_NAME);
-            int breedColumnIndex = cursor.getColumnIndex(PetsContract.PetsEntry.COLUMN_PET_BREED);
-            int genderColumnIndex = cursor.getColumnIndex(PetsContract.PetsEntry.COLUMN_PET_GENDER);
-            int weightColumnIndex = cursor.getColumnIndex(PetsContract.PetsEntry.COLUMN_PET_WEIGHT);
+            int idColumnIndex = cursor.getColumnIndex(PetContract.PetEntry._ID);
+            int nameColumnIndex = cursor.getColumnIndex(PetContract.PetEntry.COLUMN_PET_NAME);
+            int breedColumnIndex = cursor.getColumnIndex(PetContract.PetEntry.COLUMN_PET_BREED);
+            int genderColumnIndex = cursor.getColumnIndex(PetContract.PetEntry.COLUMN_PET_GENDER);
+            int weightColumnIndex = cursor.getColumnIndex(PetContract.PetEntry.COLUMN_PET_WEIGHT);
 
             // Iterate through all the returned rows in the cursor
             while (cursor.moveToNext()) {
@@ -134,17 +124,23 @@ public class CatalogActivity extends AppCompatActivity {
     /**
      * Get user input from editor and save new pet to the database.
      */
+    /**
+     * Helper method to insert hardcoded pet data into the database. For debugging purposes only.
+     */
     private void insertPet() {
-
-
-        dbHelper = new PetDbHelper(this);
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        // Create a ContentValues object where column names are the keys,
+        // and Toto's pet attributes are the values.
         ContentValues values = new ContentValues();
-        values.put(PetsContract.PetsEntry.COLUMN_PET_NAME, "Toto");
-        values.put(PetsContract.PetsEntry.COLUMN_PET_BREED, "Terrier");
-        values.put(PetsContract.PetsEntry.COLUMN_PET_GENDER, PetsContract.PetsEntry.GENDER_MALE);
-        values.put(PetsContract.PetsEntry.COLUMN_PET_WEIGHT, 7);
-        Long i = db.insert(PetsContract.PetsEntry.TABLE_NAME, null, values);
+        values.put(PetContract.PetEntry.COLUMN_PET_NAME, "Toto");
+        values.put(PetContract.PetEntry.COLUMN_PET_BREED, "Terrier");
+        values.put(PetContract.PetEntry.COLUMN_PET_GENDER, PetContract.PetEntry.GENDER_MALE);
+        values.put(PetContract.PetEntry.COLUMN_PET_WEIGHT, 7);
+
+        // Insert a new row for Toto into the provider using the ContentResolver.
+        // Use the {@link PetEntry#CONTENT_URI} to indicate that we want to insert
+        // into the pets database table.
+        // Receive the new content URI that will allow us to access Toto's data in the future.
+        Uri newUri = getContentResolver().insert(PetContract.PetEntry.CONTENT_URI, values);
     }
 
     @Override
